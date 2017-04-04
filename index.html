@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>Strava Club Distance</title>
+  
+  <script src="https://code.jquery.com/jquery.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.3.0/Rx.min.js"></script>
+  <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
+  
+  <style type="text/css">
+  .strava-badge- { display: inline-block; height: 50px; float: left;}
+  .strava-badge- img { visibility: hidden; height: 50px; }
+  //.strava-badge-:hover { background-position: 0 -63px; }
+  .strava-badge-follow { height: 50px; width: 50px; 
+    background: url(http://badges.strava.com/echelon-sprite-48.png) no-repeat -5px 0; 
+  }
+  
+  html, body {
+    font-family: 'Lato', sans-serif;
+    font-size: 1.3em;
+    margin: 0px;
+    padding: 00px;
+    color: #fff;
+    min-width: 202px;
+  }
+  
+  .row {
+    background-color: #fc4c02;
+    height: 46px;
+    float: left;
+    display: inline-block;
+
+    border: 1px solid transparent;
+    border-right: none;
+    -webkit-border-top-left-radius: 8px;
+    -webkit-border-bottom-left-radius: 8px;
+    -moz-border-radius-topleft: 8px;
+    -moz-border-radius-bottomleft: 8px;
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+  }
+  
+  .col {
+    display: inline-block;
+    float: left;
+    width: 50px;
+    height: 50px;
+  }
+  
+  .col-2 {
+    width: 100px;
+  }
+  
+  #club-logo img {
+    margin-top: 3px;
+    width: 40px;
+    height: 40px;
+  }
+  
+  #result {
+    margin: 0 auto;
+    line-height: 50px;
+    text-align: center;
+    height: 25px;
+  }
+  </style>
+  
+</head>
+<body>
+  <div class="row">
+    <div id="club-logo" class="col"> load </div>
+    <div id="result" class="col col-2"> load </div>
+  </div>
+    <a href="https://www.strava.com/dashboard?club_id=197332&feed_type=club" 
+    class="col strava-badge- strava-badge-follow" 
+    target="_blank">
+    <img  src="http://badges.strava.com/echelon-sprite-48.png" 
+    alt="Bjørgvin IF" />
+  </a>
+<script>
+var result = document.getElementById('result');
+var logo = document.getElementById('club-logo');
+var at = '?access_token=e2fdf0035cdea4ad570b3770c958ed3afcf497fd';
+
+result.innerHTML = ' load..';
+logo.innerHTML = ' load..';
+clubLogo();
+distance();
+
+function clubLogo() {
+  fetch('https://www.strava.com/api/v3/clubs/197332'+at)
+  .then( function (resp) {
+    resp.json()
+    .then( function (data) {
+      logo.innerHTML = '<img class="" src="'+data.profile_medium+'" />';
+      // profile_medium, profile, cover_photo, cover_photo_small
+    });
+  });
+}
+
+function distance () {
+  fetch('https://www.strava.com/api/v3/clubs/197332/activities'+at)
+  .then( function(resp) {
+    // resp.json() returns a promise
+    resp.json().then( function (data) {
+      var p = 0;
+      data.filter( function (activity) {
+        return activity.type === 'Run' && oneMonthEarlier(activity.start_date);
+      })
+      .map(function(activity) {
+        p += parseInt(activity.distance);
+      });
+      result.innerHTML = Math.round(p / 1000) + ' km';
+    });
+    
+  }).catch( function (err) {
+    console.debug(err);
+  });
+  
+}
+function oneMonthEarlier(date) {
+  var today = new Date();
+  var previousMonth = today.getMonth() === 0 ? '11' : ('0'+(today.getMonth()));
+  var currentDay = today.getDate() < 10 ? '0'+today.getDate() : today.getDate();
+  var year = today.getFullYear();
+  if(previousMonth === '11') {
+    year = today.getFullYear()-1;
+  }
+  return new Date(date) > new Date(year + '-'+previousMonth+'-'+currentDay+'T00:00:00Z')
+}
+</script>
+</body>
+</html>
