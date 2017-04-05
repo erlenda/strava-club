@@ -10,27 +10,28 @@
   <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
   
   <style type="text/css">
-  .strava-badge- { display: inline-block; height: 50px; float: left;}
-  .strava-badge- img { visibility: hidden; height: 50px; }
-  //.strava-badge-:hover { background-position: 0 -63px; }
-  .strava-badge-follow { height: 50px; width: 50px; 
-    background: url(http://badges.strava.com/echelon-sprite-48.png) no-repeat -5px 0; 
+  .strava-badge img {
+    visibility: hidden;
   }
+  .strava-badge { 
+    height: 50px; 
+    width: 50px; 
+    background: url(http://badges.strava.com/echelon-sprite-48.png) no-repeat 0 0; }
   
+  html { font-size: 62.5%; // most often 10px }
+  body { font-size: 1.6rem; }
   html, body {
-    font-family: 'Lato', sans-serif;
-    font-size: 1.3em;
-    margin: 0px;
-    padding: 00px;
+    font-family: 'Lato';//, sans-serif;
+    font-weight: 300;
+    margin: 0;
+    padding: 0;
     color: #fff;
-    min-width: 202px;
   }
   
   .row {
+    display: table;
     background-color: #fc4c02;
-    height: 46px;
-    float: left;
-    display: inline-block;
+    height: 3rem;
 
     border: 1px solid transparent;
     border-right: none;
@@ -43,62 +44,44 @@
   }
   
   .col {
-    display: inline-block;
-    float: left;
-    width: 50px;
-    height: 50px;
+    display: table-cell;
+    vertical-align: middle;
+    padding-right: 10px;
   }
   
-  .col-2 {
-    width: 100px;
+  .col__text {
+    font-size: 1.2rem; // 16px probably?
   }
   
-  #club-logo img {
-    margin-top: 3px;
-    width: 40px;
-    height: 40px;
+  .col__text--large {
+    font-size: 3rem; // 24px probably?
   }
   
+  .text--half {
+    font-size: 0.5rem;
+  }
+
   #result {
     margin: 0 auto;
-    line-height: 50px;
     text-align: center;
-    height: 25px;
   }
   </style>
   
 </head>
 <body>
   <div class="row">
-    <div id="club-logo" class="col"> load </div>
-    <div id="result" class="col col-2"> load </div>
+    <a class="col strava-badge" target="_blank" href="https://www.strava.com/dashboard?club_id=197332&feed_type=club">
+      <img src="http://badges.strava.com/echelon-sprite-48.png" alt="Bjørgvin IF" />
+    </a>
+    <div class="col col__text--large" id="result"> load </div>
+    <div class="col col__text" id="result">Bjørgvin IF<br />last 30 days</div>
   </div>
-    <a href="https://www.strava.com/dashboard?club_id=197332&feed_type=club" 
-    class="col strava-badge- strava-badge-follow" 
-    target="_blank">
-    <img  src="http://badges.strava.com/echelon-sprite-48.png" 
-    alt="Bjørgvin IF" />
-  </a>
 <script>
 var result = document.getElementById('result');
-var logo = document.getElementById('club-logo');
 var at = '?access_token=e2fdf0035cdea4ad570b3770c958ed3afcf497fd';
 
 result.innerHTML = ' load..';
-logo.innerHTML = ' load..';
-clubLogo();
 distance();
-
-function clubLogo() {
-  fetch('https://www.strava.com/api/v3/clubs/197332'+at)
-  .then( function (resp) {
-    resp.json()
-    .then( function (data) {
-      logo.innerHTML = '<img class="" src="'+data.profile_medium+'" />';
-      // profile_medium, profile, cover_photo, cover_photo_small
-    });
-  });
-}
 
 function distance () {
   fetch('https://www.strava.com/api/v3/clubs/197332/activities'+at)
