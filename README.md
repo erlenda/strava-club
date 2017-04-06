@@ -12,7 +12,6 @@ gulp
 # push to production
 ```
 npm version major|minor|patch
-git commit
 git push
 ```
 
