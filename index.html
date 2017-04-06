@@ -4,12 +4,44 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
   <title>Strava Club Distance</title>
-  
-  <script src="https://code.jquery.com/jquery.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.3.0/Rx.min.js"></script>
-  <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet">
-  
+  <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet" type="text/css">
   <style type="text/css">
+  html { font-size: 62.5%; } /* most often 10px*/
+  body { font-size: 1.6rem; }
+  html, body {
+    font-family: 'Lato', sans-serif;
+    font-weight: 400;
+    margin: 0;
+    padding: 0;
+    color: #fff;
+  }
+  .row {
+    display: table;
+    background-color: #fc4c02;
+    
+    border: 1px solid transparent;
+    -webkit-border-radius: 8px;
+    -moz-border-radius: 8px;
+    border-radius: 8px;
+  }
+  .col {
+    display: table-cell;
+    vertical-align: middle;
+    padding-right: 10px;
+  }
+  .text {
+    font-size: 1.25rem; /*16px probably?*/
+  }
+  .text--large {
+    font-size: 3.2rem; /*24px probably?*/
+  }
+  .text--small {
+    font-size: 1rem;
+  }
+  #result {
+    margin: 0 auto;
+    text-align: center;
+  }
   .strava-badge img {
     visibility: hidden;
   }
@@ -20,51 +52,9 @@
     background-repeat: no-repeat;
     background-position: 50% 50%;
   }
-  
-  html { font-size: 62.5%; // most often 10px }
-  body { font-size: 1.6rem;}
-  html, body {
-    font-family: 'Lato';//, sans-serif;
-    font-weight: 400;
-    margin: 0;
-    padding: 0;
-    color: #fff;
-  }
-  
-  .row {
-    display: table;
-    background-color: #fc4c02;
-
-    border: 1px solid transparent;
-    -webkit-border-radius: 8px;
-    -moz-border-radius: 8px;
-    border-radius: 8px;
-  }
-  
-  .col {
-    display: table-cell;
-    vertical-align: middle;
-    padding-right: 10px;
-  }
-  
-  .text {
-    font-size: 1.25rem; // 16px probably?
-  }
-  
-  .text--large {
-    font-size: 3.2rem; // 24px probably?
-  }
-  
-  .text--small {
-    font-size: 1rem;
-  }
-
-  #result {
-    margin: 0 auto;
-    text-align: center;
-  }
   </style>
-  
+  <script src="https://code.jquery.com/jquery.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/5.3.0/Rx.min.js"></script>
 </head>
 <body>
   <div class="row">
@@ -76,77 +66,77 @@
       <span class="text--small" id="club-period"><strong>Run</strong> last 30 days</span>
     </div>
   </div>
-<script>
-let result = document.getElementById('result');
-let at = '?access_token=e2fdf0035cdea4ad570b3770c958ed3afcf497fd';
-
-result.innerHTML = ' load..';
-distance();
-
-function distance () {
-  fetch('https://www.strava.com/api/v3/clubs/197332/activities'+at)
-  .then( function(resp) {
-    // resp.json() returns a promise
-    resp.json().then( function (data) {
-      
-      let p = 0;
-      
-      data.filter( function (activity) {
-        return activity.type === 'Run' && oneMonthEarlier(activity.start_date);
-      })
-      .map(function(activity) {
-        p += parseInt(activity.distance);
+  <script type="text/javascript">
+  var result = document.getElementById('result');
+  var at = '?access_token=e2fdf0035cdea4ad570b3770c958ed3afcf497fd';
+  
+  result.innerHTML = 'load ...';
+  distance();
+  
+  function distance () {
+    fetch('https://www.strava.com/api/v3/clubs/197332/activities'+at)
+    .then( function(resp) {
+      // resp.json() returns a promise
+      resp.json().then( function (data) {
+        
+        var p = 0;
+        
+        data.filter( function (activity) {
+          return activity.type === 'Run' && oneMonthEarlier(activity.start_date);
+        })
+        .map(function(activity) {
+          p += parseInt(activity.distance);
+        });
+        
+        var meters = round(p, 2);
+        
+        result.innerHTML = (meters / 1000).toFixed(4) + ' km';
+        
+        setTickerInterval(result, meters);
       });
       
-      let meters = round(p, 2);
-      
-      result.innerHTML = (meters / 1000).toFixed(4) + ' km';
-      
-      setTickerInterval(result, meters);
+    }).catch( function (err) {
+      console.debug(err);
     });
     
-  }).catch( function (err) {
-    console.debug(err);
-  });
+  }
   
-}
-
-function setTickerInterval(elem, meters) {
-  const SECONDS_IN_MONTH = 30 * 24 * 60 * 60;
-  
-  localStorage.setItem('total', meters);
-  console.log(meters);
-  
-  let inc = round(meters / SECONDS_IN_MONTH, 4);
-  localStorage.setItem('inc', inc);
-  console.log(inc);
-  
-  setInterval(function () {
-    let newTotal = (parseFloat(localStorage.getItem('total')) 
+  function setTickerInterval(elem, meters) {
+    const SECONDS_IN_MONTH = 30 * 24 * 60 * 60;
+    
+    localStorage.setItem('total', meters);
+    console.log(meters);
+    
+    var inc = round(meters / SECONDS_IN_MONTH, 4);
+    localStorage.setItem('inc', inc);
+    console.log(inc);
+    
+    setInterval(function () {
+      var newTotal = (parseFloat(localStorage.getItem('total')) 
       + parseFloat(localStorage.getItem('inc')))
       .toFixed(4);
-        
-    elem.innerHTML = (newTotal / 1000).toFixed(4) + ' km';
-    localStorage.setItem('total', newTotal);
-    
-    console.log(newTotal);
-  }, 1000);
-}
-
-function oneMonthEarlier(date) {
-  var today = new Date();
-  var previousMonth = today.getMonth() === 0 ? '11' : ('0'+(today.getMonth()));
-  var currentDay = today.getDate() < 10 ? '0'+today.getDate() : today.getDate();
-  var year = today.getFullYear();
-  if(previousMonth === '11') {
-    year = today.getFullYear()-1;
+      
+      elem.innerHTML = (newTotal / 1000).toFixed(4) + ' km';
+      localStorage.setItem('total', newTotal);
+      
+      console.log(newTotal);
+    }, 1000);
   }
-  return new Date(date) > new Date(year + '-'+previousMonth+'-'+currentDay+'T00:00:00Z')
-}
-
-function round(value, decimals) {
-  return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
-}
-</script>
+  
+  function oneMonthEarlier(date) {
+    var today = new Date();
+    var previousMonth = today.getMonth() === 0 ? '11' : ('0'+(today.getMonth()));
+    var currentDay = today.getDate() < 10 ? '0'+today.getDate() : today.getDate();
+    var year = today.getFullYear();
+    if(previousMonth === '11') {
+      year = today.getFullYear()-1;
+    }
+    return new Date(date) > new Date(year + '-'+previousMonth+'-'+currentDay+'T00:00:00Z')
+  }
+  
+  function round(value, decimals) {
+    return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
+  }
+  </script>
 </body>
 </html>

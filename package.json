@@ -17,6 +17,9 @@
   },
   "homepage": "https://github.com/erlenda/strava-club#readme",
   "devDependencies": {
-    "gulp-htmlmin": "^3.0.0"
-  }
+    "gulp": "^3.9.1",
+    "gulp-htmlmin": "^3.0.0",
+    "gulp-rename": "^1.2.2"
+  },
+  "dependencies": {}
 }
