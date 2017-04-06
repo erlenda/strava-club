@@ -21,5 +21,7 @@
     "gulp-htmlmin": "^3.0.0",
     "gulp-rename": "^1.2.2"
   },
-  "dependencies": {}
+  "dependencies": {
+    "gulp-minify-inline": "^0.2.1"
+  }
 }

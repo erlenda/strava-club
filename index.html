@@ -4,12 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
   <title>Strava Club Distance</title>
-  <link href="https://fonts.googleapis.com/css?family=Lato" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Droid+Serif" rel="stylesheet">
   <style type="text/css">
   html { font-size: 62.5%; } /* most often 10px*/
   body { font-size: 1.6rem; }
+  span { display: inline-block;}
   html, body {
-    font-family: 'Lato', sans-serif;
+    font-family: 'Droid Serif', serif;
     font-weight: 400;
     margin: 0;
     padding: 0;
@@ -58,9 +59,11 @@
 </head>
 <body>
   <div class="row">
-    <a class="col strava-badge" target="_blank" href="https://www.strava.com/dashboard?club_id=197332&feed_type=club">
-    </a>
-    <div class="col text--large" id="result"> load </div>
+    <a class="col strava-badge" target="_blank" href="https://www.strava.com/dashboard?club_id=197332&feed_type=club"></a>
+    <div class="col" id="result">
+      <span class="text--large">123.</span>
+      <span class="text">4567 km</span>
+    </div>
     <div class="col text" id="club-info">
       <span class="text" id="club-name">Bjørgvin IF</span><br />
       <span class="text--small" id="club-period"><strong>Run</strong> last 30 days</span>
@@ -68,55 +71,47 @@
   </div>
   <script type="text/javascript">
   var result = document.getElementById('result');
-  var at = '?access_token=e2fdf0035cdea4ad570b3770c958ed3afcf497fd';
-  
-  result.innerHTML = 'load ...';
   distance();
   
   function distance () {
-    fetch('https://www.strava.com/api/v3/clubs/197332/activities'+at)
-    .then( function(resp) {
-      // resp.json() returns a promise
-      resp.json().then( function (data) {
-        
+    fetch('https://www.strava.com/api/v3/clubs/197332/activities?access_token=e2fdf0035cdea4ad570b3770c958ed3afcf497fd')
+    .then(function(resp) {
+      resp.json().then(function(data) {
         var p = 0;
         
-        data.filter( function (activity) {
+        data.filter(function(activity) {
           return activity.type === 'Run' && oneMonthEarlier(activity.start_date);
         })
-        .map(function(activity) {
-          p += parseInt(activity.distance);
+        .map(function (activity) {
+          p += round(activity.distance, 4);
         });
         
-        var meters = round(p, 2);
-        
-        result.innerHTML = (meters / 1000).toFixed(4) + ' km';
-        
+        var meters = parseFloat(p).toFixed(2);
+        result.innerHTML = getKmText(meters);
         setTickerInterval(result, meters);
       });
       
-    }).catch( function (err) {
+    }).catch(function(err) {
       console.debug(err);
     });
     
   }
   
   function setTickerInterval(elem, meters) {
-    const SECONDS_IN_MONTH = 30 * 24 * 60 * 60;
     
     localStorage.setItem('total', meters);
     console.log(meters);
     
-    var inc = round(meters / SECONDS_IN_MONTH, 4);
+    var inc = parseFloat(meters / (30 * 24 * 60 * 60)).toFixed(4);
     localStorage.setItem('inc', inc);
     console.log(inc);
     
-    setInterval(function () {
+    setInterval(function() {
       var newTotal = (parseFloat(localStorage.getItem('total')) 
       + parseFloat(localStorage.getItem('inc')))
       .toFixed(4);
       
-      elem.innerHTML = (newTotal / 1000).toFixed(4) + ' km';
+      elem.innerHTML = getKmText(newTotal);
       localStorage.setItem('total', newTotal);
       
       console.log(newTotal);
@@ -137,6 +132,14 @@
   function round(value, decimals) {
     return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
   }
+  
+  function getKmText(meters) {
+    var total = (meters / 1000).toFixed(4).split('.');
+    var major = total[0],
+        minor = total[1];
+    return  '<span class="text--large">'+major+'.</span>\n'+
+            '<span class="text">'+minor+'km</span>';
+  } 
   </script>
 </body>
 </html>
