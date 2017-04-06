@@ -22,10 +22,10 @@
   }
   
   html { font-size: 62.5%; // most often 10px }
-  body { font-size: 1.6rem; }
+  body { font-size: 1.6rem;}
   html, body {
     font-family: 'Lato';//, sans-serif;
-    font-weight: 300;
+    font-weight: 400;
     margin: 0;
     padding: 0;
     color: #fff;
@@ -34,16 +34,11 @@
   .row {
     display: table;
     background-color: #fc4c02;
-    height: 3rem;
 
     border: 1px solid transparent;
-    border-right: none;
-    -webkit-border-top-left-radius: 8px;
-    -webkit-border-bottom-left-radius: 8px;
-    -moz-border-radius-topleft: 8px;
-    -moz-border-radius-bottomleft: 8px;
-    border-top-left-radius: 8px;
-    border-bottom-left-radius: 8px;
+    -webkit-border-radius: 8px;
+    -moz-border-radius: 8px;
+    border-radius: 8px;
   }
   
   .col {
@@ -52,16 +47,16 @@
     padding-right: 10px;
   }
   
-  .col__text {
-    font-size: 1.2rem; // 16px probably?
+  .text {
+    font-size: 1.25rem; // 16px probably?
   }
   
-  .col__text--large {
-    font-size: 3rem; // 24px probably?
+  .text--large {
+    font-size: 3.2rem; // 24px probably?
   }
   
-  .text--half {
-    font-size: 0.5rem;
+  .text--small {
+    font-size: 1rem;
   }
 
   #result {
@@ -74,14 +69,16 @@
 <body>
   <div class="row">
     <a class="col strava-badge" target="_blank" href="https://www.strava.com/dashboard?club_id=197332&feed_type=club">
-      <img src="http://badges.strava.com/echelon-sprite-48.png" alt="Bjørgvin IF" />
     </a>
-    <div class="col col__text--large" id="result"> load </div>
-    <div class="col col__text" id="result">Bjørgvin IF<br />last 30 days</div>
+    <div class="col text--large" id="result"> load </div>
+    <div class="col text" id="club-info">
+      <span class="text" id="club-name">Bjørgvin IF</span><br />
+      <span class="text--small" id="club-period"><strong>Run</strong> last 30 days</span>
+    </div>
   </div>
 <script>
-var result = document.getElementById('result');
-var at = '?access_token=e2fdf0035cdea4ad570b3770c958ed3afcf497fd';
+let result = document.getElementById('result');
+let at = '?access_token=e2fdf0035cdea4ad570b3770c958ed3afcf497fd';
 
 result.innerHTML = ' load..';
 distance();
@@ -91,14 +88,21 @@ function distance () {
   .then( function(resp) {
     // resp.json() returns a promise
     resp.json().then( function (data) {
-      var p = 0;
+      
+      let p = 0;
+      
       data.filter( function (activity) {
         return activity.type === 'Run' && oneMonthEarlier(activity.start_date);
       })
       .map(function(activity) {
         p += parseInt(activity.distance);
       });
-      result.innerHTML = Math.round(p / 1000) + ' km';
+      
+      let meters = round(p, 2);
+      
+      result.innerHTML = (meters / 1000).toFixed(4) + ' km';
+      
+      setTickerInterval(result, meters);
     });
     
   }).catch( function (err) {
@@ -106,6 +110,29 @@ function distance () {
   });
   
 }
+
+function setTickerInterval(elem, meters) {
+  const SECONDS_IN_MONTH = 30 * 24 * 60 * 60;
+  
+  localStorage.setItem('total', meters);
+  console.log(meters);
+  
+  let inc = round(meters / SECONDS_IN_MONTH, 4);
+  localStorage.setItem('inc', inc);
+  console.log(inc);
+  
+  setInterval(function () {
+    let newTotal = (parseFloat(localStorage.getItem('total')) 
+      + parseFloat(localStorage.getItem('inc')))
+      .toFixed(4);
+        
+    elem.innerHTML = (newTotal / 1000).toFixed(4) + ' km';
+    localStorage.setItem('total', newTotal);
+    
+    console.log(newTotal);
+  }, 1000);
+}
+
 function oneMonthEarlier(date) {
   var today = new Date();
   var previousMonth = today.getMonth() === 0 ? '11' : ('0'+(today.getMonth()));
@@ -115,6 +142,10 @@ function oneMonthEarlier(date) {
     year = today.getFullYear()-1;
   }
   return new Date(date) > new Date(year + '-'+previousMonth+'-'+currentDay+'T00:00:00Z')
+}
+
+function round(value, decimals) {
+  return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
 }
 </script>
 </body>
