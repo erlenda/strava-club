@@ -11,6 +11,6 @@ gulp.task('default', [], function () {
     minifyJS: true
   }))
   // .pipe(min2())
-  .pipe(rename('index.min.html'))
+  .pipe(rename('index.html'))
   .pipe(gulp.dest('./public'));
 });
