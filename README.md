@@ -1,10 +1,14 @@
+html | css | es5 all-in-one-html Strava club run distance badge for Bjørgvin Indremosjonistforening 
+
+
 # hosting production
 http://bjorgvin-strava.netlify.com
+
 administration: https://app.netlify.com/sites/bjorgvin-strava
 
 # development
 ```shell
-yarn install gulp-cli
+yarn global add gulp-cli
 yarn install
 gulp
 ```
